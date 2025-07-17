@@ -197,7 +197,7 @@ const Home: React.FC = () => {
                 <div>
                     {selectedItem && barChartData && (
                         <div style={{ maxWidth: '800px', marginTop: '2rem' }}>
-                            <h3>Total Global Sales Comparison (Top 10 in {selectedItem.Year})</h3>
+                            <h3>Total Global Sales Comparison (Against Top 10 in {selectedItem.Year})</h3>
                             <Bar
                                 data={barChartData}
                                 options={{
