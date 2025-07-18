@@ -42,7 +42,13 @@ const Home: React.FC = () => {
     const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
     const [selectedItem, setSelectedItem] = useState<GameData>();
-    const chartRef = useRef<ChartJS<'bar'>>(null); 
+    const chartRef = useRef<ChartJS<'bar'>>(null);
+
+    //bar chart items
+    const [comparisonYear, setComparisonYear] = useState<number | null>(null);
+    const [topCount, setTopCount] = useState<number>(10);
+    const [salesMetric, setSalesMetric] = useState<keyof Pick<GameData, 'Global_Sales' | 'NA_Sales' | 'EU_Sales' | 'JP_Sales' | 'Other_Sales'>>('Global_Sales');
+
 
     useEffect(() => {
         fetch('/vgsales.csv')
@@ -62,8 +68,9 @@ const Home: React.FC = () => {
     useEffect(() => {
         if (data.length > 0 && !selectedItem) {
             setSelectedItem(data[0]);
+            setComparisonYear(data[0].Year);
         }
-    }, [data]);
+    }, [data, selectedItem]);
 
     const handlePageChange = (page: number) => {
         if (page >= 1 && page <= totalPages) {
@@ -109,26 +116,30 @@ const Home: React.FC = () => {
     //Bar Chart Data 
     let barChartData = undefined;
     if (selectedItem) {
+        const year = comparisonYear ?? selectedItem.Year;
+
         const sameYearGames = data.filter(
-            (g) => g.Year === selectedItem.Year && g.Global_Sales != null
+            (g) => g.Year === year && g[salesMetric] != null
         );
+
         const sorted = [...sameYearGames].sort(
-            (a, b) => b.Global_Sales - a.Global_Sales
+            (a, b) => b[salesMetric] - a[salesMetric]
         );
-        const topGames = sorted.slice(0, 10);
+
+        const topGames = sorted.slice(0, topCount);
         const isSelectedIncluded = topGames.some(g => g.Name === selectedItem.Name);
-        if (!isSelectedIncluded) {
-            topGames.push(selectedItem);
-        }
+        if (!isSelectedIncluded) topGames.push(selectedItem);
+
         const labels = topGames.map((g) =>
             g.Name === selectedItem.Name ? `${g.Name}` : g.Name
         );
+
         barChartData = {
             labels,
             datasets: [
                 {
-                    label: 'Global Sales (millions)',
-                    data: topGames.map((g) => g.Global_Sales),
+                    label: `${salesMetric.replace('_', ' ')} (millions)`,
+                    data: topGames.map((g) => g[salesMetric]),
                     backgroundColor: topGames.map((g) =>
                         g.Name === selectedItem.Name ? '#FAED26' : '#8884d8'
                     ),
@@ -171,7 +182,7 @@ const Home: React.FC = () => {
                                                     selectedItem.Other_Sales
                                                 ],
                                                 backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0'],
-                                                borderWidth:0
+                                                borderWidth: 0
                                             }
                                         ]
                                     }}
@@ -198,10 +209,11 @@ const Home: React.FC = () => {
                     </div>
 
                 </div>
-                <div>
+                <div className='d-flex gap-3 align-items-center'>
+                   
                     {selectedItem && barChartData && (
-                        <div style={{ maxWidth: '800px', marginTop: '2rem' }}>
-                            <h3>Total Global Sales Comparison (Against Top 10 in {selectedItem.Year})</h3>
+                        <div style={{ maxWidth: '800px', marginTop: '2rem' }} >
+                            <h3>Total {salesMetric.replaceAll('_', ' ')} Comparison (Against Top {topCount} in {comparisonYear})</h3>
                             <Bar
                                 ref={chartRef}
                                 data={barChartData}
@@ -245,14 +257,75 @@ const Home: React.FC = () => {
                                     const elements = getElementAtEvent(chartRef.current, event);
                                     if (elements && elements.length > 0) {
                                         const index = elements[0].index;
-                                        const label = barChartData.labels[index];
-                                        const game = data.find(
-                                            g => g.Name === label && g.Year === selectedItem?.Year
+                                        const year = comparisonYear ?? selectedItem.Year;
+                                        const sameYearGames = data.filter(
+                                            (g) => g.Year === year && g[salesMetric] != null
                                         );
-                                        if (game) setSelectedItem(game);
+                                        const sorted = [...sameYearGames].sort(
+                                            (a, b) => b[salesMetric] - a[salesMetric]
+                                        );
+                                        const topGames = sorted.slice(0, topCount);
+                                        const isSelectedIncluded = topGames.some(g => g.Name === selectedItem.Name);
+                                        if (!isSelectedIncluded) topGames.push(selectedItem);
+                                        const clickedGame = topGames[index];
+                                        if (clickedGame) setSelectedItem(clickedGame);
                                     }
                                 }}
                             />
+                        </div>
+                    )}
+
+                     {selectedItem && (
+                        <div className="my-3 p-3 bg-secondary text-light rounded align-items-center">
+                            <h4>Customize Bar Chart</h4>
+                            <div className="d-flex flex-wrap gap-4 align-items-center">
+                                <div>
+                                    <label>Year: </label>
+                                    <select
+                                        className="form-select"
+                                        style={{ width: '120px' }}
+                                        value={comparisonYear ?? selectedItem.Year}
+                                        onChange={(e) => setComparisonYear(parseInt(e.target.value))}
+                                    >
+                                        {[...new Set(data.map(d => d.Year))]
+                                            .sort((a, b) => a - b)
+                                            .map((year) => (
+                                                <option key={year} value={year}>
+                                                    {year}
+                                                </option>
+                                            ))}
+                                    </select>
+                                </div>
+
+                                <div>
+                                    <label>Top N Games: </label>
+                                    <input
+                                        className="form-control"
+                                        type="number"
+                                        min={5}
+                                        max={25}
+                                        style={{ width: '100px' }}
+                                        value={topCount}
+                                        onChange={(e) => setTopCount(parseInt(e.target.value))}
+                                    />
+                                </div>
+
+                                <div>
+                                    <label>Sales Metric: </label>
+                                    <select
+                                        className="form-select"
+                                        style={{ width: '160px' }}
+                                        value={salesMetric}
+                                        onChange={(e) => setSalesMetric(e.target.value as any)}
+                                    >
+                                        <option value="Global_Sales">Global Sales</option>
+                                        <option value="NA_Sales">NA Sales</option>
+                                        <option value="EU_Sales">EU Sales</option>
+                                        <option value="JP_Sales">JP Sales</option>
+                                        <option value="Other_Sales">Other Sales</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>
@@ -263,7 +336,7 @@ const Home: React.FC = () => {
             <div className='shadow-lg p-4'>
                 <h1 className='text-center'>All Video Game Data</h1>
                 <table border={1} cellPadding={12} cellSpacing={0}>
-                    <thead>
+                    <thead >
                         <tr>
                             {[
                                 'Rank',
