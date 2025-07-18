@@ -105,6 +105,7 @@ const Home: React.FC = () => {
         return sortDirection === 'asc' ? '▲' : '▼';
     };
 
+    //Bar Chart Data 
     let barChartData = undefined;
     if (selectedItem) {
         const sameYearGames = data.filter(
@@ -128,7 +129,7 @@ const Home: React.FC = () => {
                     label: 'Global Sales (millions)',
                     data: topGames.map((g) => g.Global_Sales),
                     backgroundColor: topGames.map((g) =>
-                        g.Name === selectedItem.Name ? '#36A2EB' : '#8884d8'
+                        g.Name === selectedItem.Name ? '#FAED26' : '#8884d8'
                     ),
                 },
             ],
@@ -136,19 +137,19 @@ const Home: React.FC = () => {
     }
 
     return (
-        <div className="container mt-5 bg-light p-4 min-vh-100 text-dark">
+        <div className="container bg-dark p-4 min-vh-100 text-light">
 
             <div className='mb-4 p-3 d-flex flex-column align-items-center justify-content-center'>
                 <div className='d-flex gap-4 flex-row'>
-                    <div className='mx-2'>
-                        <h2>Sales data for: <span className='text-info fw-bold'>{selectedItem?.Name}</span></h2>
-                        <ul className="list-group mt-3 w-100">
-                            <li className="list-group-item border-0"><strong>Rank:</strong> {selectedItem?.Rank}</li>
-                            <li className="list-group-item border-0"><strong>Platform:</strong> {selectedItem?.Platform}</li>
-                            <li className="list-group-item border-0"><strong>Year:</strong> {selectedItem?.Year}</li>
-                            <li className="list-group-item border-0" ><strong>Genre:</strong> {selectedItem?.Genre}</li>
-                            <li className="list-group-item border-0"><strong>Publisher:</strong> {selectedItem?.Publisher}</li>
-                            <li className="list-group-item border-0"><strong>Total Global Sales:</strong> {selectedItem?.Global_Sales} million units sold</li>
+                    <div className='mx-2 shadow-lg p-3 rounded-3'>
+                        <h2>Sales data for: <span className='text-primary fw-bold'>{selectedItem?.Name}</span></h2>
+                        <ul className="list-group mt-3 w-100 ">
+                            <li className="list-group-item border-0 bg-secondary text-light"><strong>Rank:</strong> {selectedItem?.Rank}</li>
+                            <li className="list-group-item border-0 bg-info text-light"><strong>Platform:</strong> {selectedItem?.Platform}</li>
+                            <li className="list-group-item border-0 bg-secondary text-light"><strong>Year:</strong> {selectedItem?.Year}</li>
+                            <li className="list-group-item border-0 bg-info text-light" ><strong>Genre:</strong> {selectedItem?.Genre}</li>
+                            <li className="list-group-item border-0 bg-secondary text-light"><strong>Publisher:</strong> {selectedItem?.Publisher}</li>
+                            <li className="list-group-item border-0 bg-info text-light"><strong>Total Global Sales:</strong> {selectedItem?.Global_Sales} million units sold</li>
                         </ul>
                     </div>
 
@@ -169,15 +170,16 @@ const Home: React.FC = () => {
                                                     selectedItem.Other_Sales
                                                 ],
                                                 backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0'],
-                                                borderColor: ['#fff'],
-                                                borderWidth: 1
                                             }
                                         ]
                                     }}
                                     options={{
                                         plugins: {
                                             legend: {
-                                                position: 'top' as const
+                                                position: 'top' as const,
+                                                labels: {
+                                                    color: '#fff'
+                                                }
                                             },
                                             tooltip: {
                                                 callbacks: {
@@ -203,7 +205,12 @@ const Home: React.FC = () => {
                                 options={{
                                     indexAxis: 'y',
                                     plugins: {
-                                        legend: { display: false },
+                                        legend: {
+                                            display: false,
+                                            labels: {
+                                                color: '#fff'
+                                            }
+                                        },
                                         title: {
                                             display: false,
                                             text: 'Top 10 Games vs Selected',
@@ -214,8 +221,20 @@ const Home: React.FC = () => {
                                             title: {
                                                 display: true,
                                                 text: 'Millions Sold',
+                                                color: '#fff'
                                             },
+                                            ticks: {
+                                                color: '#fff'
+                                            }
                                         },
+                                        y: {
+                                            ticks: {
+                                                color: (ctx) => {
+                                                    const label = ctx.tick.label;
+                                                    return label === selectedItem?.Name ? '#FAED26' : '#fff';
+                                                }
+                                            }
+                                        }
                                     },
                                 }}
                             />
@@ -228,7 +247,7 @@ const Home: React.FC = () => {
 
             <div className='shadow-lg p-4'>
                 <h1 className='text-center'>All Video Game Data</h1>
-                <table border={1} cellPadding={6} cellSpacing={0}>
+                <table border={1} cellPadding={12} cellSpacing={0}>
                     <thead>
                         <tr>
                             {[
@@ -253,7 +272,7 @@ const Home: React.FC = () => {
                     <tbody>
                         {currentPageData.map((game, index) => (
                             <tr key={index} onClick={() => setSelectedItem(game)}
-                                style={{ backgroundColor: game === selectedItem ? '#dedcff' : 'transparent', cursor: 'pointer' }}>
+                                style={{ backgroundColor: game === selectedItem ? '#FAED26' : 'transparent', cursor: 'pointer', color: game === selectedItem ? 'black' : 'white' }}>
                                 <td>{game.Rank}</td>
                                 <td>{game.Name}</td>
                                 <td>{game.Platform}</td>
@@ -271,15 +290,15 @@ const Home: React.FC = () => {
                 </table>
 
                 {/* Pagination */}
-                <div style={{ marginTop: '1rem' }}>
-                    <button onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
-                        ◀ Prev
+                <div style={{ marginTop: '1rem' }} className='d-flex justify-content-center align-items-center'>
+                    <button className="btn text-light bg-info" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
+                        Prev
                     </button>
                     <span style={{ margin: '0 1rem' }}>
                         Page {currentPage} of {totalPages}
                     </span>
-                    <button onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
-                        Next ▶
+                    <button className="btn text-light bg-info" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
+                        Next
                     </button>
                 </div>
             </div>

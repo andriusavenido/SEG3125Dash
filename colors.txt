@@ -3,3 +3,9 @@
 --primary: #2f27ce;
 --secondary: #dedcff;
 --accent: #433bff;
+
+$primary:#FAED26;
+$secondary:#9d8d8f;
+$info: #9b786f;
+$dark:#46344E;
+$light:#fbfbfe;
