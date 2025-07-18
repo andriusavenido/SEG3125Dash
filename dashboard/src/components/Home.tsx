@@ -1,8 +1,8 @@
 import Papa from 'papaparse';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 
 import { Pie } from 'react-chartjs-2';
-import { Bar } from 'react-chartjs-2';
+import { Bar, getElementAtEvent } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
     ArcElement,
@@ -42,6 +42,7 @@ const Home: React.FC = () => {
     const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
     const [selectedItem, setSelectedItem] = useState<GameData>();
+    const chartRef = useRef<ChartJS<'bar'>>(null); 
 
     useEffect(() => {
         fetch('/vgsales.csv')
@@ -141,7 +142,7 @@ const Home: React.FC = () => {
 
             <div className='mb-4 p-3 d-flex flex-column align-items-center justify-content-center'>
                 <div className='d-flex gap-4 flex-row'>
-                    <div className='mx-2 shadow-lg p-3 rounded-3'>
+                    <div className='mx-2  p-3 rounded-3'>
                         <h2>Sales data for: <span className='text-primary fw-bold'>{selectedItem?.Name}</span></h2>
                         <ul className="list-group mt-3 w-100 ">
                             <li className="list-group-item border-0 bg-secondary text-light"><strong>Rank:</strong> {selectedItem?.Rank}</li>
@@ -170,6 +171,7 @@ const Home: React.FC = () => {
                                                     selectedItem.Other_Sales
                                                 ],
                                                 backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0'],
+                                                borderWidth:0
                                             }
                                         ]
                                     }}
@@ -201,6 +203,7 @@ const Home: React.FC = () => {
                         <div style={{ maxWidth: '800px', marginTop: '2rem' }}>
                             <h3>Total Global Sales Comparison (Against Top 10 in {selectedItem.Year})</h3>
                             <Bar
+                                ref={chartRef}
                                 data={barChartData}
                                 options={{
                                     indexAxis: 'y',
@@ -236,6 +239,18 @@ const Home: React.FC = () => {
                                             }
                                         }
                                     },
+                                }}
+                                onClick={(event) => {
+                                    if (!chartRef.current) return;
+                                    const elements = getElementAtEvent(chartRef.current, event);
+                                    if (elements && elements.length > 0) {
+                                        const index = elements[0].index;
+                                        const label = barChartData.labels[index];
+                                        const game = data.find(
+                                            g => g.Name === label && g.Year === selectedItem?.Year
+                                        );
+                                        if (game) setSelectedItem(game);
+                                    }
                                 }}
                             />
                         </div>
