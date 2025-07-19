@@ -44,6 +44,9 @@ const Home: React.FC = () => {
     const [selectedItem, setSelectedItem] = useState<GameData>();
     const chartRef = useRef<ChartJS<'bar'>>(null);
 
+    //pie chart
+    const [selectedPie, setSelectedPie] = useState(0);//0, 1, 2 for options
+
     //bar chart items
     const [comparisonYear, setComparisonYear] = useState<number | null>(null);
     const [topCount, setTopCount] = useState<number>(10);
@@ -113,6 +116,33 @@ const Home: React.FC = () => {
         return sortDirection === 'asc' ? '▲' : '▼';
     };
 
+    //pie chart data
+    const getGenreDistributionData = () => {
+        if (!selectedItem) return undefined;
+        const yearGames = data.filter(g => g.Year === selectedItem.Year);
+        const genreCounts: { [genre: string]: number } = {};
+        yearGames.forEach(g => {
+            genreCounts[g.Genre] = (genreCounts[g.Genre] || 0) + 1;
+        });
+        const labels = Object.keys(genreCounts);
+        const values = Object.values(genreCounts);
+        const colors = [
+            '#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0', '#9966FF', '#FF9F40',
+            '#8BC34A', '#E91E63', '#00BCD4', '#CDDC39', '#FF5722', '#607D8B'
+        ];
+        return {
+            labels,
+            datasets: [
+                {
+                    label: 'Number of Games',
+                    data: values,
+                    backgroundColor: labels.map((_, i) => colors[i % colors.length]),
+                    borderWidth: 0
+                }
+            ]
+        };
+    };
+
     //Bar Chart Data 
     let barChartData = undefined;
     if (selectedItem) {
@@ -152,8 +182,8 @@ const Home: React.FC = () => {
         <div className="container bg-dark p-4 min-vh-100 text-light">
 
             <div className='mb-4 p-3 d-flex flex-column align-items-center justify-content-center'>
-                <div className='d-flex gap-4 flex-row'>
-                    <div className='mx-2  p-3 rounded-3'>
+                <div className='d-flex flex-row justify-content-center align-items-center'>
+                    <div className=' p-3 rounded-3'>
                         <h2>Sales data for: <span className='text-primary fw-bold'>{selectedItem?.Name}</span></h2>
                         <ul className="list-group mt-3 w-100 ">
                             <li className="list-group-item border-0 bg-secondary text-light"><strong>Rank:</strong> {selectedItem?.Rank}</li>
@@ -165,52 +195,114 @@ const Home: React.FC = () => {
                         </ul>
                     </div>
 
-                    <div>
+                    <div className='d-flex flex-row justify-content-center align-items-center'>
                         {selectedItem && (
-                            <div style={{ maxWidth: '400px', margin: '0 auto' }} className='d-flex flex-column align-items-center'>
-                                <h3>Regional Sales Breakdown</h3>
-                                <Pie
-                                    data={{
-                                        labels: ['NA Sales', 'EU Sales', 'JP Sales', 'Other Sales'],
-                                        datasets: [
-                                            {
-                                                label: 'Sales (millions)',
-                                                data: [
-                                                    selectedItem.NA_Sales,
-                                                    selectedItem.EU_Sales,
-                                                    selectedItem.JP_Sales,
-                                                    selectedItem.Other_Sales
-                                                ],
-                                                backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0'],
-                                                borderWidth: 0
-                                            }
-                                        ]
-                                    }}
-                                    options={{
-                                        plugins: {
-                                            legend: {
-                                                position: 'top' as const,
-                                                labels: {
-                                                    color: '#fff'
-                                                }
-                                            },
-                                            tooltip: {
-                                                callbacks: {
-                                                    label: function (context) {
-                                                        return `${context.label}: ${context.parsed} million`;
+                            <div style={{ maxWidth: '400px' }} className='d-flex flex-column align-items-center mx-4'>
+                                {selectedPie === 0 ? (
+                                    <>
+                                        <h3>Regional Sales Breakdown</h3>
+                                        <Pie
+                                            data={{
+                                                labels: ['NA Sales', 'EU Sales', 'JP Sales', 'Other Sales'],
+                                                datasets: [
+                                                    {
+                                                        label: 'Sales (millions)',
+                                                        data: [
+                                                            selectedItem.NA_Sales,
+                                                            selectedItem.EU_Sales,
+                                                            selectedItem.JP_Sales,
+                                                            selectedItem.Other_Sales
+                                                        ],
+                                                        backgroundColor: ['#36A2EB', '#FF6384', '#FFCE56', '#4BC0C0'],
+                                                        borderWidth: 0
+                                                    }
+                                                ]
+                                            }}
+                                            options={{
+                                                plugins: {
+                                                    legend: {
+                                                        position: 'top' as const,
+                                                        labels: {
+                                                            color: '#fff'
+                                                        }
+                                                    },
+                                                    tooltip: {
+                                                        callbacks: {
+                                                            label: function (context) {
+                                                                return `${context.label}: ${context.parsed} million`;
+                                                            }
+                                                        }
                                                     }
                                                 }
-                                            }
-                                        }
-                                    }}
-                                />
+                                            }}
+                                        />
+                                    </>
+                                ) : (
+                                    <>
+                                        <h3>Genre Distribution for {selectedItem.Year}</h3>
+                                        <Pie
+                                            data={getGenreDistributionData()!}
+                                            options={{
+                                                plugins: {
+                                                    legend: {
+                                                        position: 'top' as const,
+                                                        labels: {
+                                                            color: '#fff'
+                                                        }
+                                                    },
+                                                    tooltip: {
+                                                        callbacks: {
+                                                            label: function (context) {
+                                                                return `${context.label}: ${context.parsed} games`;
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }}
+                                        />
+                                    </>
+                                )}
+
+                              
                             </div>
                         )}
+                          <div className="my-3 p-3 bg-secondary text-light rounded align-items-center w-25 h-25 mx-4" >
+                                    <h4 className='text-center'>Change Pie Chart</h4>
+                                    <div className="d-flex flex-wrap gap-4 align-items-center justify-content-center">
+                                        <div className="form-check form-check-inline">
+                                            <input
+                                                className="form-check-input"
+                                                type="radio"
+                                                name="pieChartOption"
+                                                id="pieChartOption0"
+                                                checked={selectedPie === 0}
+                                                onChange={() => setSelectedPie(0)}
+                                            />
+                                            <label className="form-check-label" htmlFor="pieChartOption0">
+                                                Regional Sales Breakdown
+                                            </label>
+                                        </div>
+                                        <div className="form-check form-check-inline">
+                                            <input
+                                                className="form-check-input"
+                                                type="radio"
+                                                name="pieChartOption"
+                                                id="pieChartOption1"
+                                                checked={selectedPie === 1}
+                                                onChange={() => setSelectedPie(1)}
+                                            />
+                                            <label className="form-check-label" htmlFor="pieChartOption1">
+                                                Genre Distribution for Release Year
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
                     </div>
 
                 </div>
+
                 <div className='d-flex gap-3 align-items-center'>
-                   
+
                     {selectedItem && barChartData && (
                         <div style={{ maxWidth: '800px', marginTop: '2rem' }} >
                             <h3>Total {salesMetric.replaceAll('_', ' ')} Comparison (Against Top {topCount} in {comparisonYear})</h3>
@@ -275,7 +367,7 @@ const Home: React.FC = () => {
                         </div>
                     )}
 
-                     {selectedItem && (
+                    {selectedItem && (
                         <div className="my-3 p-3 bg-secondary text-light rounded align-items-center">
                             <h4>Customize Bar Chart</h4>
                             <div className="d-flex flex-wrap gap-4 align-items-center">
@@ -359,7 +451,12 @@ const Home: React.FC = () => {
                     </thead>
                     <tbody>
                         {currentPageData.map((game, index) => (
-                            <tr key={index} onClick={() => setSelectedItem(game)}
+                            <tr key={index} onClick={() => {
+                                setSelectedItem(game);
+                                setComparisonYear(game.Year);
+                                setTopCount(10);
+                                setSalesMetric('Global_Sales');
+                            }}
                                 style={{ backgroundColor: game === selectedItem ? '#FAED26' : 'transparent', cursor: 'pointer', color: game === selectedItem ? 'black' : 'white' }}>
                                 <td>{game.Rank}</td>
                                 <td>{game.Name}</td>
