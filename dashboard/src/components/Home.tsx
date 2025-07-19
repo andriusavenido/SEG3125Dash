@@ -35,7 +35,11 @@ const ITEMS_PER_PAGE = 15;
 type SortColumn = keyof GameData;
 type SortDirection = 'asc' | 'desc';
 
-const Home: React.FC = () => {
+type HomeProps = {
+    language: string;
+};
+
+const Home: React.FC<HomeProps> = ({ language }) => {
     const [data, setData] = useState<GameData[]>([]);
     const [currentPage, setCurrentPage] = useState(1);
     const [sortColumn, setSortColumn] = useState<SortColumn | null>(null);
@@ -134,7 +138,7 @@ const Home: React.FC = () => {
             labels,
             datasets: [
                 {
-                    label: 'Number of Games',
+                    label: language === 'fr' ? 'Nombre de jeux' : 'Number of Games',
                     data: values,
                     backgroundColor: labels.map((_, i) => colors[i % colors.length]),
                     borderWidth: 0
@@ -184,14 +188,14 @@ const Home: React.FC = () => {
             <div className='mb-4 p-3 d-flex flex-column align-items-center justify-content-center'>
                 <div className='d-flex flex-row justify-content-center align-items-center'>
                     <div className=' p-3 rounded-3'>
-                        <h2>Sales data for: <span className='text-primary fw-bold'>{selectedItem?.Name}</span></h2>
-                        <ul className="list-group mt-3 w-100 ">
-                            <li className="list-group-item border-0 bg-secondary text-light"><strong>Rank:</strong> {selectedItem?.Rank}</li>
-                            <li className="list-group-item border-0 bg-info text-light"><strong>Platform:</strong> {selectedItem?.Platform}</li>
-                            <li className="list-group-item border-0 bg-secondary text-light"><strong>Year:</strong> {selectedItem?.Year}</li>
-                            <li className="list-group-item border-0 bg-info text-light" ><strong>Genre:</strong> {selectedItem?.Genre}</li>
-                            <li className="list-group-item border-0 bg-secondary text-light"><strong>Publisher:</strong> {selectedItem?.Publisher}</li>
-                            <li className="list-group-item border-0 bg-info text-light"><strong>Total Global Sales:</strong> {selectedItem?.Global_Sales} million units sold</li>
+                        <h2>{language === 'fr' ? 'Données de vente pour' : 'Sales data for'}: <span className='text-primary fw-bold'>{selectedItem?.Name}</span></h2>
+                        <ul className="list-group mt-3 w-100">
+                            <li className="list-group-item border-0 bg-secondary text-light"><strong>{language === 'fr' ? 'Classement' : 'Rank'}:</strong> {selectedItem?.Rank}</li>
+                            <li className="list-group-item border-0 bg-info text-light"><strong>{language === 'fr' ? 'Plateforme' : 'Platform'}:</strong> {selectedItem?.Platform}</li>
+                            <li className="list-group-item border-0 bg-secondary text-light"><strong>{language === 'fr' ? 'Année' : 'Year'}:</strong> {selectedItem?.Year}</li>
+                            <li className="list-group-item border-0 bg-info text-light"><strong>{language === 'fr' ? 'Genre' : 'Genre'}:</strong> {selectedItem?.Genre}</li>
+                            <li className="list-group-item border-0 bg-secondary text-light"><strong>{language === 'fr' ? 'Éditeur' : 'Publisher'}:</strong> {selectedItem?.Publisher}</li>
+                            <li className="list-group-item border-0 bg-info text-light"><strong>{language === 'fr' ? 'Ventes mondiales totales' : 'Total Global Sales'}:</strong> {selectedItem?.Global_Sales} million units sold</li>
                         </ul>
                     </div>
 
@@ -200,13 +204,18 @@ const Home: React.FC = () => {
                             <div style={{ maxWidth: '400px' }} className='d-flex flex-column align-items-center mx-4'>
                                 {selectedPie === 0 ? (
                                     <>
-                                        <h3>Regional Sales Breakdown</h3>
+                                        <h3>{language === 'fr' ? 'Répartition des ventes par région' : 'Regional Sales Breakdown'}</h3>
                                         <Pie
                                             data={{
-                                                labels: ['NA Sales', 'EU Sales', 'JP Sales', 'Other Sales'],
+                                                labels: [
+                                                    language === 'fr' ? 'Ventes NA' : 'NA Sales',
+                                                    language === 'fr' ? 'Ventes UE' : 'EU Sales',
+                                                    language === 'fr' ? 'Ventes JP' : 'JP Sales',
+                                                    language === 'fr' ? 'Autres Ventes' : 'Other Sales'
+                                                ],
                                                 datasets: [
                                                     {
-                                                        label: 'Sales (millions)',
+                                                        label: language === 'fr' ? 'Ventes (millions)' : 'Sales (millions)',
                                                         data: [
                                                             selectedItem.NA_Sales,
                                                             selectedItem.EU_Sales,
@@ -239,7 +248,7 @@ const Home: React.FC = () => {
                                     </>
                                 ) : (
                                     <>
-                                        <h3>Genre Distribution for {selectedItem.Year}</h3>
+                                        <h3>{language === 'fr' ? `Répartition des genres pour ${comparisonYear}` : `Genre Distribution for ${comparisonYear}`}</h3>
                                         <Pie
                                             data={getGenreDistributionData()!}
                                             options={{
@@ -253,50 +262,54 @@ const Home: React.FC = () => {
                                                     tooltip: {
                                                         callbacks: {
                                                             label: function (context) {
-                                                                return `${context.label}: ${context.parsed} games`;
+                                                                return `${context.label}: ${context.parsed} ${language === 'fr' ? 'jeux' : 'games'
+                                                                    }`;
                                                             }
                                                         }
                                                     }
                                                 }
                                             }}
                                         />
+
                                     </>
                                 )}
 
-                              
+
                             </div>
                         )}
-                          <div className="my-3 p-3 bg-secondary text-light rounded align-items-center w-25 h-25 mx-4" >
-                                    <h4 className='text-center'>Change Pie Chart</h4>
-                                    <div className="d-flex flex-wrap gap-4 align-items-center justify-content-center">
-                                        <div className="form-check form-check-inline">
-                                            <input
-                                                className="form-check-input"
-                                                type="radio"
-                                                name="pieChartOption"
-                                                id="pieChartOption0"
-                                                checked={selectedPie === 0}
-                                                onChange={() => setSelectedPie(0)}
-                                            />
-                                            <label className="form-check-label" htmlFor="pieChartOption0">
-                                                Regional Sales Breakdown
-                                            </label>
-                                        </div>
-                                        <div className="form-check form-check-inline">
-                                            <input
-                                                className="form-check-input"
-                                                type="radio"
-                                                name="pieChartOption"
-                                                id="pieChartOption1"
-                                                checked={selectedPie === 1}
-                                                onChange={() => setSelectedPie(1)}
-                                            />
-                                            <label className="form-check-label" htmlFor="pieChartOption1">
-                                                Genre Distribution for Release Year
-                                            </label>
-                                        </div>
-                                    </div>
+                        <div className="my-3 p-3 bg-secondary text-light rounded align-items-center w-25 h-25 mx-4" >
+                            <h3>{language === 'fr' ? 'Changer le graphique circulaire' : 'Change Pie Chart'}</h3>
+                            <div className="d-flex flex-wrap gap-4 align-items-center justify-content-center">
+                                <div className="form-check form-check-inline">
+                                    <input
+                                        className="form-check-input"
+                                        type="radio"
+                                        name="pieChartOption"
+                                        id="pieChartOption0"
+                                        checked={selectedPie === 0}
+                                        onChange={() => setSelectedPie(0)}
+                                    />
+                                    <label className="form-check-label" htmlFor="pieChartOption0">
+                                        {language === 'fr' ? 'Répartition des ventes par région' : 'Regional Sales Breakdown'}
+                                    </label>
                                 </div>
+                                <div className="form-check form-check-inline">
+                                    <input
+                                        className="form-check-input"
+                                        type="radio"
+                                        name="pieChartOption"
+                                        id="pieChartOption1"
+                                        checked={selectedPie === 1}
+                                        onChange={() => setSelectedPie(1)}
+                                    />
+                                    <label className="form-check-label" htmlFor="pieChartOption1">
+                                        {language === 'fr'
+                                            ? 'Répartition des genres pour l’année de sortie'
+                                            : 'Genre Distribution for Release Year'}
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
                     </div>
 
                 </div>
@@ -305,7 +318,11 @@ const Home: React.FC = () => {
 
                     {selectedItem && barChartData && (
                         <div style={{ maxWidth: '800px', marginTop: '2rem' }} >
-                            <h3>Total {salesMetric.replaceAll('_', ' ')} Comparison (Against Top {topCount} in {comparisonYear})</h3>
+                            <h3>
+                                {language === 'fr'
+                                    ? `Comparaison totale de ${salesMetric.replaceAll('_', ' ')} (parmi les ${topCount} premiers en ${comparisonYear})`
+                                    : `Total ${salesMetric.replaceAll('_', ' ')} Comparison (Against Top ${topCount} in ${comparisonYear})`}
+                            </h3>
                             <Bar
                                 ref={chartRef}
                                 data={barChartData}
@@ -320,7 +337,7 @@ const Home: React.FC = () => {
                                         },
                                         title: {
                                             display: false,
-                                            text: 'Top 10 Games vs Selected',
+                                            text: language === 'fr' ? 'Top 10 Jeux vs Sélectionné' : 'Top 10 Games vs Selected',
                                         },
                                     },
                                     scales: {
@@ -369,14 +386,14 @@ const Home: React.FC = () => {
 
                     {selectedItem && (
                         <div className="my-3 p-3 bg-secondary text-light rounded align-items-center">
-                            <h4>Customize Bar Chart</h4>
+                            <h4>{language === 'fr' ? 'Personnaliser le graphique à barres' : 'Customize Bar Chart'}</h4>
                             <div className="d-flex flex-wrap gap-4 align-items-center">
                                 <div>
-                                    <label>Year: </label>
+                                    <label>{language === 'fr' ? 'Année :' : 'Year:'} </label>
                                     <select
                                         className="form-select"
                                         style={{ width: '120px' }}
-                                        value={comparisonYear ?? selectedItem.Year}
+                                        value={comparisonYear ?? selectedItem?.Year}
                                         onChange={(e) => setComparisonYear(parseInt(e.target.value))}
                                     >
                                         {[...new Set(data.map(d => d.Year))]
@@ -390,7 +407,7 @@ const Home: React.FC = () => {
                                 </div>
 
                                 <div>
-                                    <label>Top N Games: </label>
+                                    <label>{language === 'fr' ? 'Top N Jeux :' : 'Top N Games:'} </label>
                                     <input
                                         className="form-control"
                                         type="number"
@@ -403,22 +420,23 @@ const Home: React.FC = () => {
                                 </div>
 
                                 <div>
-                                    <label>Sales Metric: </label>
+                                    <label>{language === 'fr' ? 'Métrique de ventes :' : 'Sales Metric:'} </label>
                                     <select
                                         className="form-select"
                                         style={{ width: '160px' }}
                                         value={salesMetric}
                                         onChange={(e) => setSalesMetric(e.target.value as any)}
                                     >
-                                        <option value="Global_Sales">Global Sales</option>
-                                        <option value="NA_Sales">NA Sales</option>
-                                        <option value="EU_Sales">EU Sales</option>
-                                        <option value="JP_Sales">JP Sales</option>
-                                        <option value="Other_Sales">Other Sales</option>
+                                        <option value="Global_Sales">{language === 'fr' ? 'Ventes Mondiales' : 'Global Sales'}</option>
+                                        <option value="NA_Sales">{language === 'fr' ? 'Ventes NA' : 'NA Sales'}</option>
+                                        <option value="EU_Sales">{language === 'fr' ? 'Ventes UE' : 'EU Sales'}</option>
+                                        <option value="JP_Sales">{language === 'fr' ? 'Ventes JP' : 'JP Sales'}</option>
+                                        <option value="Other_Sales">{language === 'fr' ? 'Autres Ventes' : 'Other Sales'}</option>
                                     </select>
                                 </div>
                             </div>
                         </div>
+
                     )}
                 </div>
 
@@ -426,22 +444,24 @@ const Home: React.FC = () => {
             </div>
 
             <div className='shadow-lg p-4'>
-                <h1 className='text-center'>All Video Game Data</h1>
+                <h1 className='text-center'>
+                    {language === 'fr' ? 'Toutes les données de jeux vidéo' : 'All Video Game Data'}
+                </h1>
                 <table border={1} cellPadding={12} cellSpacing={0}>
-                    <thead >
+                    <thead>
                         <tr>
                             {[
-                                'Rank',
-                                'Name',
-                                'Platform',
-                                'Year',
-                                'Genre',
-                                'Publisher',
-                                'NA Sales (million units)',
-                                'EU Sales (million units)',
-                                'JP Sales (million units)',
-                                'Other Sales (million units)',
-                                'Total Global Sales (million units)',
+                                language === 'fr' ? 'Rang' : 'Rank',
+                                language === 'fr' ? 'Nom' : 'Name',
+                                language === 'fr' ? 'Plateforme' : 'Platform',
+                                language === 'fr' ? 'Année' : 'Year',
+                                language === 'fr' ? 'Genre' : 'Genre',
+                                language === 'fr' ? 'Éditeur' : 'Publisher',
+                                language === 'fr' ? 'Ventes NA (millions d’unités)' : 'NA Sales (million units)',
+                                language === 'fr' ? 'Ventes UE (millions d’unités)' : 'EU Sales (million units)',
+                                language === 'fr' ? 'Ventes JP (millions d’unités)' : 'JP Sales (million units)',
+                                language === 'fr' ? 'Autres ventes (millions d’unités)' : 'Other Sales (million units)',
+                                language === 'fr' ? 'Ventes mondiales totales (millions d’unités)' : 'Total Global Sales (million units)',
                             ].map((col) => (
                                 <th key={col} onClick={() => handleSort(col as SortColumn)} style={{ cursor: 'pointer' }}>
                                     {col} {getSortSymbol(col as SortColumn)}
@@ -451,13 +471,20 @@ const Home: React.FC = () => {
                     </thead>
                     <tbody>
                         {currentPageData.map((game, index) => (
-                            <tr key={index} onClick={() => {
-                                setSelectedItem(game);
-                                setComparisonYear(game.Year);
-                                setTopCount(10);
-                                setSalesMetric('Global_Sales');
-                            }}
-                                style={{ backgroundColor: game === selectedItem ? '#FAED26' : 'transparent', cursor: 'pointer', color: game === selectedItem ? 'black' : 'white' }}>
+                            <tr
+                                key={index}
+                                onClick={() => {
+                                    setSelectedItem(game);
+                                    setComparisonYear(game.Year);
+                                    setTopCount(10);
+                                    setSalesMetric('Global_Sales');
+                                }}
+                                style={{
+                                    backgroundColor: game === selectedItem ? '#FAED26' : 'transparent',
+                                    cursor: 'pointer',
+                                    color: game === selectedItem ? 'black' : 'white',
+                                }}
+                            >
                                 <td>{game.Rank}</td>
                                 <td>{game.Name}</td>
                                 <td>{game.Platform}</td>
@@ -477,16 +504,17 @@ const Home: React.FC = () => {
                 {/* Pagination */}
                 <div style={{ marginTop: '1rem' }} className='d-flex justify-content-center align-items-center'>
                     <button className="btn text-light bg-info" onClick={() => handlePageChange(currentPage - 1)} disabled={currentPage === 1}>
-                        Prev
+                        {language === 'fr' ? 'Précédent' : 'Prev'}
                     </button>
                     <span style={{ margin: '0 1rem' }}>
-                        Page {currentPage} of {totalPages}
+                        {language === 'fr' ? `Page ${currentPage} sur ${totalPages}` : `Page ${currentPage} of ${totalPages}`}
                     </span>
                     <button className="btn text-light bg-info" onClick={() => handlePageChange(currentPage + 1)} disabled={currentPage === totalPages}>
-                        Next
+                        {language === 'fr' ? 'Suivant' : 'Next'}
                     </button>
                 </div>
             </div>
+
         </div>
 
     );
